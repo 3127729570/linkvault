@@ -110,6 +110,32 @@ export async function PATCH(
       },
     });
 
+    // When a site is approved, automatically add it to the submitter's favorites
+    if (
+      isApproved === true &&
+      !existingSite.isApproved &&
+      existingSite.submitterId
+    ) {
+      try {
+        await prisma.favorite.upsert({
+          where: {
+            userId_siteId: {
+              userId: existingSite.submitterId,
+              siteId: params.id,
+            },
+          },
+          create: {
+            userId: existingSite.submitterId,
+            siteId: params.id,
+          },
+          update: {},
+        });
+      } catch (favError) {
+        // Don't fail the approval if favorite creation fails
+        console.error("Auto-favorite on approval failed:", favError);
+      }
+    }
+
     return apiResponse(updated);
   } catch (error: any) {
     if (error?.code === "P2002") {

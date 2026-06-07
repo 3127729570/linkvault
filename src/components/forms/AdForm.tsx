@@ -85,7 +85,7 @@ export default function AdForm({ ad, trigger, onSuccess }: AdFormProps) {
 
   const mutation = useMutation({
     mutationFn: async (data: AdInput) => {
-      const url = isEditing ? `/api/ads/${ad!.id}` : "/api/ads";
+      const url = isEditing ? `/api/admin/ads/${ad!.id}` : "/api/admin/ads";
       const method = isEditing ? "PATCH" : "POST";
       const res = await fetch(url, {
         method,
@@ -98,7 +98,7 @@ export default function AdForm({ ad, trigger, onSuccess }: AdFormProps) {
     },
     onSuccess: () => {
       toast.success(isEditing ? "Ad updated" : "Ad created");
-      queryClient.invalidateQueries({ queryKey: ["ads"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "ads"] });
       setOpen(false);
       reset();
       onSuccess?.();

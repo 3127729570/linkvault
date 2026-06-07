@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ export default function SiteSubmitForm() {
   const { isAuthenticated } = useCurrentUser();
   const [isLoading, setIsLoading] = useState(false);
   const { lang } = useLanguage();
+  const queryClient = useQueryClient();
 
   const { data: categoriesData } = useQuery({
     queryKey: ["categories"],
@@ -76,6 +77,9 @@ export default function SiteSubmitForm() {
 
       toast.success(t("submit.success", lang));
       reset();
+      // Invalidate submissions and admin queries so the new site shows up
+      queryClient.invalidateQueries({ queryKey: ["user", "submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "sites"] });
     } catch {
       toast.error("An unexpected error occurred");
     } finally {

@@ -7,6 +7,12 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const isLoggedIn = !!req.auth;
 
+  // Skip RSC requests to prevent ERR_ABORTED console noise
+  // RSC requests are prefetches and should not trigger redirects
+  if (req.headers.get("RSC") === "1") {
+    return NextResponse.next();
+  }
+
   // Protect dashboard routes
   if (pathname.startsWith("/dashboard") && !isLoggedIn) {
     const url = new URL("/login", req.url);

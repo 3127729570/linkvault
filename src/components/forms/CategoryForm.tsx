@@ -78,6 +78,7 @@ export default function CategoryForm({
     onSuccess: () => {
       toast.success(isEditing ? "Category updated" : "Category created");
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
       setOpen(false);
       reset();
       onSuccess?.();
