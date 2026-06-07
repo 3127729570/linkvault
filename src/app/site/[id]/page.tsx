@@ -91,7 +91,6 @@ export default function SiteDetailPage() {
   const handleVisit = () => {
     if (!site) return
     clickMutation.mutate()
-    window.open(site.url, "_blank", "noopener,noreferrer")
   }
 
   const handleFavorite = () => {
@@ -192,10 +191,16 @@ export default function SiteDetailPage() {
 
           {/* Actions */}
           <div className="flex flex-wrap gap-3">
-            <Button onClick={handleVisit} size="lg">
+            <a
+              href={site.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleVisit}
+              className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
               <ExternalLink className="mr-2 h-4 w-4" />
               {t("site.visit", lang)}
-            </Button>
+            </a>
             <Button
               variant={site.isFavorited ? "default" : "outline"}
               size="lg"

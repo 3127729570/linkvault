@@ -1,5 +1,6 @@
 "use client"
 
+import { Suspense } from "react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -45,7 +46,7 @@ function SiteCardSkeleton() {
   )
 }
 
-export default function CategoryPage() {
+function CategoryPageContent() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -167,5 +168,26 @@ export default function CategoryPage() {
         </aside>
       </div>
     </div>
+  )
+}
+
+export default function CategoryPage() {
+  return (
+    <Suspense fallback={
+      <div className="mx-auto max-w-7xl px-4 py-6">
+        <div className="flex flex-col gap-6 lg:flex-row">
+          <div className="min-w-0 flex-1 space-y-6">
+            <Skeleton className="h-8 w-48" />
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <SiteCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <CategoryPageContent />
+    </Suspense>
   )
 }

@@ -86,14 +86,12 @@ export default function SiteCard({ site, onFavoriteToggle, highlightQuery: _high
   };
 
   const handleVisit = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
     fetch("/api/track-click", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ siteId: site.id }),
     }).catch(() => {});
-    window.open(site.url, "_blank");
   };
 
   return (
@@ -153,14 +151,16 @@ export default function SiteCard({ site, onFavoriteToggle, highlightQuery: _high
             <EyeIcon className="size-3" />
             <span>{formatNumber(site.clicks)}{t("site.clicks", lang)}</span>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
+          <a
+            href={site.url}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={handleVisit}
+            className="inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
           >
             <ExternalLinkIcon className="size-3" />
             {t("site.visit", lang)}
-          </Button>
+          </a>
         </div>
       </CardFooter>
     </Card>
