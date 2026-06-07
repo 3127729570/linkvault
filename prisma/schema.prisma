@@ -1,0 +1,165 @@
+// LinkVault - Prisma Schema
+// Database: PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Position {
+  SIDEBAR
+  TOP_BANNER
+  IN_CONTENT
+  FOOTER
+}
+
+enum AdType {
+  GOOGLE_AD
+  CUSTOM
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String?   // credential users have password, OAuth users don't
+  image         String?
+  role          Role      @default(USER)
+  emailVerified DateTime? // OAuth auto-sets this
+  accounts      Account[]
+  sessions      Session[]
+  favorites     Favorite[]
+  submittedSites Site[]    @relation("Submitter")
+  clickLogs     ClickLog[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Site {
+  id          String     @id @default(cuid())
+  title       String
+  url         String     @unique
+  description String     @db.Text
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id])
+  tags        String[]
+  logo        String?    // Logo URL (Vercel Blob or auto-fetched favicon)
+  screenshot  String?
+  clicks      Int        @default(0)
+  isApproved  Boolean    @default(false)
+  submitterId String?
+  submitter   User?      @relation("Submitter", fields: [submitterId], references: [id])
+  favorites   Favorite[]
+  clickLogs   ClickLog[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([categoryId])
+  @@index([isApproved])
+  @@index([clicks])
+  @@map("sites")
+}
+
+model Category {
+  id    String  @id @default(cuid())
+  name  String  @unique
+  slug  String  @unique
+  icon  String? // lucide icon name, e.g. "Globe"
+  order Int     @default(0)
+  sites Site[]
+
+  @@map("categories")
+}
+
+model AdSlot {
+  id             String    @id @default(cuid())
+  name           String    // internal identifier, e.g. "sidebar-ad-1"
+  description    String?
+  position       Position
+  type           AdType
+  customImageUrl String?
+  customLink     String?
+  isActive       Boolean   @default(true)
+  startDate      DateTime? // ad start date, null means no limit
+  endDate        DateTime? // ad end date
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([position])
+  @@map("ad_slots")
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, siteId])
+  @@map("favorites")
+}
+
+model ClickLog {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  userId    String?  // logged-in user, null for guests
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ip        String?
+  referrer  String?
+  clickedAt DateTime @default(now())
+
+  @@index([siteId])
+  @@map("click_logs")
+}
